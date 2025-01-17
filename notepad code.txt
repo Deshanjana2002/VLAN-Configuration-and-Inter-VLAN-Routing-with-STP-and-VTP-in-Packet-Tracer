@@ -1,0 +1,267 @@
+VLAN Configuration
+
+VLAN 10 - HR
+VLAN 20 - Finance
+VLAN 30 - IT
+
+
+End device ID	VLAN	IP Address
+PC01	                     10	 10.10.10.3
+PC04	                     10	 10.10.10.4
+PC02	                      20	 10.10.20.3
+PC05	                      20           10.10.20.4
+PC03	                      30	 10.10.30.3
+PC06	                      30	 10.10.30.4
+
+
+End device ID	Connected Switch	Port
+PC1	                            SW2	Fa 0/5
+PC2                                       SW2                  Fa 0/6
+PC3	                            SW2	Fa 0/7
+PC4	                            SW3	Fa 0/5
+PC5	                            SW3	Fa 0/6
+PC6	                            SW3	Fa 0/7
+
+
+// Create vlan on switch1
+
+switch> en
+switch# conf t
+switch(config)# hostname SW1
+
+SW1(config)#vlan 10
+SW1(config-vlan)# name HR
+SW1(config-vlan)#ex
+SW1(config)#vlan 20
+SW1(config-vlan)# name Finance
+SW1(config-vlan)#ex
+SW1(config)#vlan 30
+SW1(config-vlan)# name IT
+SW1(config-vlan)#ex
+
+// Port assignment of VLANs in Switch 2
+
+switch> en
+switch# conf t
+switch(config)# hostname SW2
+
+SW2(config)#interface faceEthernet 0/5
+SW2(config-if)# switchport mode access
+SW2(config-if)# switchport access vlan 10
+SW2(config-if)#ex
+SW2(config)#interface faceEthernet 0/6
+SW2(config-if)# switchport mode access
+SW2(config-if)# switchport access vlan 20
+SW2(config-if)#ex
+SW2(config)#interface faceEthernet 0/7
+SW2(config-if)# switchport mode access
+SW2(config-if)# switchport access vlan 30
+SW2(config-if)#ex
+
+// Port assignment of VLANs in Switch 3
+
+switch> en
+switch# conf t
+switch(config)# hostname SW3
+
+SW3(config)#interface faceEthernet 0/5
+SW3(config-if)# switchport mode access
+SW3(config-if)# switchport access vlan 10
+SW3(config-if)#ex
+SW3(config)#interface faceEthernet 0/6
+SW3(config-if)# switchport mode access
+SW3(config-if)# switchport access vlan 20
+SW3(config-if)#ex
+SW3(config)#interface faceEthernet 0/7
+SW3(config-if)# switchport mode access
+SW3(config-if)# switchport access vlan 30
+SW3(config-if)#ex
+
+//Verifying VLAN 
+
+SW1>en
+SW1#sh vlan brief
+
+SW2>en
+SW2#sh vlan brief
+
+SW3>en
+SW3#sh vlan brief
+
+
+// Port Trunking
+Switch	Ports
+SW1	Fa 0/1, Fa 0/2, Fa 0/3
+SW2	Fa 0/2, Fa 0/4
+SW3	Fa 0/3, Fa 0/4
+
+// Trunk port configuration on switch 1
+
+SW1>en
+SW1#conf t
+SW1(config)# interface fastEthernet 0/1
+SW1(config-if)#switchport mode trunk
+SW1(config-if)#ex
+SW1(config)# interface fastEthernet 0/2
+SW1(config-if)#switchport mode trunk
+SW1(config-if)#ex
+SW1(config)# interface fastEthernet 0/3
+SW1(config-if)#switchport mode trunk
+SW1(config-if)#ex
+
+// Trunk port configuration on switch 2
+
+SW2>en
+SW2#conf t
+SW2(config)# interface fastEthernet 0/2
+SW2(config-if)#switchport mode trunk
+SW2(config-if)#ex
+SW2(config)# interface fastEthernet 0/4
+SW2(config-if)#switchport mode trunk
+SW2(config-if)#ex
+
+// Trunk port configuration on switch 3
+
+SW3>en
+SW3#conf t
+SW3(config)# interface fastEthernet 0/3
+SW3(config-if)#switchport mode trunk
+SW3(config-if)#ex
+SW3(config)# interface fastEthernet 0/4
+SW3(config-if)#switchport mode trunk
+SW3(config-if)#ex
+
+// Configuring VTP Server on Switch1
+
+SW1>en
+SW1#conf t
+SW1(config)# vtp mode server
+SW1(config)# vtp domain ITN3162_1
+SW1(config)# vtp password 106030
+SW1(config)# ex
+
+// Configuring VTP Client on Switch2
+
+SW2>en
+SW2#conf t
+SW2(config)# vtp mode client
+SW2(config)# vtp domain ITN3162_1
+SW2(config)# vtp password 106030
+SW2(config)# ex
+
+// Configuring VTP Client on Switch3
+
+SW3>en
+SW3#conf t
+SW3(config)# vtp mode client
+SW3(config)# vtp domain ITN3162_1
+SW3(config)# vtp password 106030
+SW3(config)# ex
+
+// Ensuring VLAN synchronization
+
+SW1>en
+SW1#sh vtp status
+
+SW2>en
+SW2#sh vtp status
+
+SW3>en
+SW3#sh vtp status
+
+// Enabling STP on Switch 1
+
+SW1>en
+SW1#conf t
+SW1(config)# spanning-tree mode rapid-pvst
+SW1(config)#ex
+
+// Enabling STP on Switch 2
+
+SW2>en
+SW2#conf t
+SW2(config)# spanning-tree mode rapid-pvst
+SW2(config)#ex
+
+// Enabling STP on Switch 3
+
+SW3>en
+SW3#conf t
+SW3(config)# spanning-tree mode rapid-pvst
+SW3(config)#ex
+
+// Assigning root bridge priority
+
+VLAN 10 - Root bridge is SW1
+VLAN 20 - Root bridge is SW2
+VLAN 30 - Root bridge is SW3
+
+
+// Configuring Switch 1 as root bridge for VLAN 10
+
+SW1>en
+SW1#conf t
+SW1(config)# spanning-tree vlan 10 root primary
+SW1(config)#ex
+
+// Configuring Switch 2 as root bridge for VLAN 20
+
+SW2>en
+SW2#conf t
+SW2(config)# spanning-tree vlan 20 root primary
+SW2(config)#ex
+
+// Configuring Switch 3 as root bridge for VLAN 30
+
+SW3>en
+SW3#conf t
+SW3(config)# spanning-tree vlan 30 root primary
+SW3(config)#ex
+
+// Blocking the port Fa0/4 of Switch 2
+
+SW2>en
+SW2#conf t
+SW2(config)# interface fastEthernet 0/4
+SW2(config-if)#shutdown
+SW2(config-if)#ex
+
+// Verifying STP configurations
+
+SW1>en
+SW1# sh spanning-tree
+
+SW2>en
+SW2# sh spanning-tree
+
+SW3>en
+SW3# sh spanning-tree
+
+// Configuring Router-on-Stick on the Router (R1)
+
+router>en
+router# conf t
+router(config)# hostname R1
+
+R1(config)# interface fastEthernet 0/0.10
+R1(config-subif)# encapsulation dot1Q 10
+R1(config-subif)# ip address 10.10.10.1 255.255.255.0
+R1(config-subif)# no shutdown
+R1(config-subif)# ex
+
+R1(config)# interface fastEthernet 0/0.20
+R1(config-subif)# encapsulation dot1Q 20
+R1(config-subif)# ip address 10.10.20.1 255.255.255.0
+R1(config-subif)# no shutdown
+R1(config-subif)# ex
+
+R1(config)# interface fastEthernet 0/0.30
+R1(config-subif)# encapsulation dot1Q 30
+R1(config-subif)# ip address 10.10.30.1 255.255.255.0
+R1(config-subif)# no shutdown
+R1(config-subif)# ex
+
+R1(config)# interface fastEthernet 0/0
+R1(config-if)# no shutdown
+R1(config)#ex
+
